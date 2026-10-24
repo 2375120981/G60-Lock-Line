@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "candidate_radius_m": 200,
+  "enemy_read_limit": 96,
+  "sample_interval_s": 0.1,
+  "minimum_history_s": 0.2,
+  "confirm_s": 0.3,
+  "candidate_freshness_s": 0.35,
+  "minimum_speed_m_s": 1,
+  "maximum_speed_m_s": 120,
+  "minimum_alignment": 0.94,
+  "minimum_score": 0.65,
+  "minimum_margin": 0.08
+}

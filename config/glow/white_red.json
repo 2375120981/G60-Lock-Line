@@ -1,0 +1,25 @@
+{
+  "enabled": true,
+  "mode": "native_bloom_white_red",
+  "unit_resource": "units/c09nat/g60_status_light",
+  "unlocked_argb": [
+    255,
+    255,
+    255,
+    255
+  ],
+  "locked_argb": [
+    255,
+    255,
+    0,
+    0
+  ],
+  "intensity": 8,
+  "radius_m": 5,
+  "offset_z_m": 0.3,
+  "point_radius_px": 5,
+  "marker_resource": "units/c09nat/g60_bloom_marker",
+  "unlocked_material": "materials/c09nat/g60_bloom_white",
+  "locked_material": "materials/c09nat/g60_bloom_red",
+  "marker_radius_m": 0.08
+}

@@ -1,0 +1,108 @@
+-- HD2-Addon: mods/c09nat/g60_lock_line
+-- G60 Lock Line @@VERSION@@: read-only target observation + local visual lines.
+local KEY = '__C09NAT_G60_LOCK_LINE'
+local existing = rawget(_G, KEY)
+if existing and existing.active then return existing end
+local state = {version = '@@VERSION@@', active = false, experimental = true, native_lifetime_verified = false}
+rawset(_G, KEY, state)
+local log, pending, written = nil, {}, 0
+local loader = rawget(_G, 'CowboyBingusModLoader')
+if type(loader) == 'table' and type(loader.open_log) == 'function' then
+    local ok, handle = pcall(loader.open_log, 'G60LockLine.log')
+    if ok then log = handle end
+end
+local function flush()
+    if not log or #pending == 0 then return end
+    local message = table.concat(pending, '\n') .. '\n'
+    pending = {}
+    if written + #message > 2097152 then pcall(function() log:close() end); log = nil; return end
+    local ok = pcall(function() assert(log:write(message)); assert(log:flush()) end)
+    if ok then written = written + #message else pcall(function() log:close() end); log = nil end
+end
+local function emit(message)
+    local line = tostring(message):gsub('[\r\n]', ' '):sub(1, 900)
+    if #pending >= 64 then flush() end
+    if log then pending[#pending + 1] = line end
+end
+local host, renderer, glow
+local previous_update, previous_shutdown = rawget(_G, 'update'), rawget(_G, 'shutdown')
+local wrapper, shutdown_wrapper
+local stopped = false
+local function stop()
+    if stopped then return end
+    stopped = true; state.active = false
+    if host then pcall(host.stop, host) else
+        if renderer then pcall(renderer.clear, renderer) end
+        if glow then pcall(glow.clear, glow) end
+    end
+    if rawget(_G, 'update') == wrapper then rawset(_G, 'update', previous_update) end
+    if rawget(_G, 'shutdown') == shutdown_wrapper then rawset(_G, 'shutdown', previous_shutdown) end
+    flush()
+    if log then pcall(function() log:close() end); log = nil end
+end
+state.stop = stop
+local ok, why = pcall(function()
+    assert(type(loader) == 'table' and loader.api == 1, 'Bingus Shared Loader API 1 required')
+    assert(type(previous_update) == 'function', 'update callback unavailable')
+    local engine = assert(rawget(_G, 'stingray'), 'engine API unavailable')
+    @@MODULES@@
+    local config = @@CONFIG@@
+    config.visual_style = PresetOptions.apply(config.visual_style, require, emit)
+    config.glow = PresetOptions.glow(require, emit)
+    glow = GlowRenderer.new(engine, emit, config.glow)
+    renderer = Renderer.new(engine, emit, config)
+    state.renderer_available, state.renderer_missing = renderer.available, renderer.missing
+    emit('version=@@VERSION@@ reference=' .. tostring(config.reference)
+        .. ' endpoint=live_unit_pose depth_test=' .. tostring(not config.disable_depth_test)
+        .. ' renderer=' .. tostring(config.renderer)
+        .. ' observation=' .. tostring(config.observation_mode) .. ' radius_m=' .. tostring(config.tracking_radius_m)
+        .. ' multiplayer_diagnostics=' .. tostring(config.multiplayer_diagnostics)
+        .. ' native_lifetime_verified=false')
+    emit('renderer_api available=' .. tostring(renderer.available) .. ' missing=' .. renderer.missing)
+    flush()
+    local function view_origin() return ObservationScope.camera_origin(engine) end
+    local function diagnostic_owner(index)
+        assert(type(index)=='number' and index>=0 and index<0x7fff,'unsupported network index')
+        local network,game=engine.Network,engine.GameSession
+        assert(type(network)=='table' and type(game)=='table','ownership API unavailable')
+        local session=network.game_session()
+        assert(session and game.game_object_exists(session,index)==true,'network object absent')
+        local result=game.game_object_owned(session,index)
+        assert(network.game_session()==session,'network session changed')
+        assert(game.game_object_exists(session,index)==true,'network object disappeared')
+        assert(type(result)=='boolean','ownership result unavailable')
+        return result
+    end
+    local reader = Memory.new(config,diagnostic_owner)
+    emit('native_layout_verified build=F5FEE03DCFDB estimation='..tostring(config.estimation.enabled))
+    host = Controller.new(reader, renderer, nil, emit, config, glow, view_origin, diagnostic_owner)
+    state.stats = host
+    local unpack_values = unpack or table.unpack
+    local elapsed = 0
+    local function after(dt, ...)
+        local values = {n = select('#', ...), ...}
+        if not stopped then
+            local tick_ok, tick_error = pcall(host.tick, host, dt)
+            if not tick_ok then
+                state.reason = tostring(tick_error); emit('disabled ' .. state.reason); stop()
+            end
+            elapsed = elapsed + ((type(dt) == 'number' and dt > 0 and dt < 1) and dt or 1 / 60)
+            if not stopped and elapsed >= 2 then elapsed = 0; flush() end
+        end
+        return unpack_values(values, 1, values.n)
+    end
+    wrapper = function(...)
+        -- Preserve every stock return value, including trailing nils.
+        return after(select(1, ...), previous_update(...))
+    end
+    shutdown_wrapper = function(...)
+        stop()
+        if type(previous_shutdown) == 'function' then return previous_shutdown(...) end
+    end
+    rawset(_G, 'update', wrapper); rawset(_G, 'shutdown', shutdown_wrapper)
+    state.active = true
+    emit('started'); flush()
+end)
+if not ok then state.reason = tostring(why); emit('startup_failed ' .. state.reason); stop() end
+print('[G60LockLine] ' .. (state.active and 'started; check G60LockLine.log' or ('disabled: ' .. tostring(state.reason))))
+return state

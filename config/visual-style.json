@@ -1,0 +1,15 @@
+{
+  "color_argb": [255, 255, 255, 255],
+  "line_width_px": 2,
+  "target_marker": {
+    "style": "world_cross",
+    "half_size_m": 0.2,
+    "width_px": 1.5
+  },
+  "g60_marker": {
+    "style": "ring",
+    "radius_px": 6,
+    "width_px": 1.5,
+    "segments": 24
+  }
+}

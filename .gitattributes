@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.lua text eol=lf
+*.in text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.png binary
+*.material binary

@@ -1,0 +1,29 @@
+# Generated packages, private evidence, logs and local environments.
+/build/
+/release/
+/research/
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+
+# Local cover-generation history and superseded development notes.
+/assets/cover-generation.json
+/可行性研究.md
+/文件结构.md
+/测试说明.md
+
+# Historical, machine-specific checks; current validation is check_estimation.py.
+/tools/audit_evidence.py
+/tools/check.py
+/tools/check_bloom.py
+/tools/check_glow.py
+/tools/check_lifecycle.py
+/tools/check_options.py
+/tools/check_replication.py
+/tools/check_scope.py
