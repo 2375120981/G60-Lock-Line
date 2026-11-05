@@ -1,5 +1,9 @@
 # G60 Lock Line · G60 锁定指示线
 
+当前分支维护 **MDL 适配版 1.0.2**：[下载管理器安装包](mdl/release/G60-Lock-Line-MDL-v1.0.2.zip) · [安装、构建与验证说明](mdl/README.md) · [MDL 源码](mdl/g60_read_probe)。依赖 MDL3，设置项支持点击循环切换配色和准星。1.0.2 目标线修复通过离线测试，游戏内验证待完成。
+
+独立版 V1.2.2 保留在 [main 分支](https://github.com/2375120981/G60-Lock-Line/tree/main)。下文为该版本的历史说明；两个版本的版本号分别维护。
+
 ![G60 Lock Line cover](assets/G60-Lock-Line-cover-v0.1.16.png)
 
 为《绝地潜兵 2》的 G60 反坦克寻踪者添加本地位置、目标与状态提示。当前源码版本为 **V1.2.2**。
